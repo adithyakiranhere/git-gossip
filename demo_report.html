@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Gossip — test-repo</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e0e0ec;
+    --text-dim: #6a6a80;
+    --accent: #c084fc;
+    --accent2: #818cf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --cyan: #22d3ee;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+.hero h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+.hero .repo-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+.hero .meta {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+}
+.meta span { margin: 0 0.8rem; }
+
+.section {
+    margin-bottom: 2.5rem;
+}
+.section h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+.subtitle {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.author-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+}
+.author-card:hover { border-color: var(--accent); }
+.author-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.author-header h3 { font-size: 1.15rem; font-weight: 700; }
+.persona {
+    font-size: 0.85rem;
+    padding: 0.2rem 0.7rem;
+    background: var(--surface2);
+    border-radius: 20px;
+    color: var(--accent);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0.6rem;
+    background: var(--surface2);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.stat-label { color: var(--text-dim); }
+.stat-value { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.stat-value.add { color: var(--green); }
+.stat-value.del { color: var(--red); }
+.stat-row.frust { border-left: 3px solid var(--yellow); }
+.stat-row.rage { border-left: 3px solid var(--red); }
+
+.heatmap-section { margin-top: 0.8rem; }
+.heatmap-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.3rem; }
+.heatmap {
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+    gap: 2px;
+}
+.heat-cell {
+    height: 18px;
+    background: var(--accent);
+    border-radius: 3px;
+    min-width: 0;
+}
+.day-map {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+.day-cell {
+    height: 28px;
+    background: var(--accent2);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+thead th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+tbody td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+tbody tr:hover { background: var(--surface); }
+.file-name { color: var(--cyan); }
+.risk-high td:first-child { border-left: 3px solid var(--red); }
+.risk-mid td:first-child { border-left: 3px solid var(--yellow); }
+.risk-low td:first-child { border-left: 3px solid var(--green); }
+
+.bus-number {
+    font-size: 3rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 12px;
+    margin: 0.5rem 0 1rem;
+}
+.bus-number.danger { color: var(--red); background: rgba(248,113,113,0.1); }
+.bus-number.warn { color: var(--yellow); background: rgba(251,191,36,0.1); }
+.bus-number.safe { color: var(--green); background: rgba(74,222,128,0.1); }
+
+.grade-badge {
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    display: inline-block;
+    padding: 0.3rem 1.2rem;
+    border-radius: 10px;
+    margin: 0.5rem 0;
+}
+.grade-badge.good { color: var(--green); background: rgba(74,222,128,0.1); }
+.grade-badge.ok { color: var(--yellow); background: rgba(251,191,36,0.1); }
+.grade-badge.bad { color: var(--red); background: rgba(248,113,113,0.1); }
+
+.msg {
+    padding: 0.4rem 0.6rem;
+    margin: 0.3rem 0;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+}
+.bad-msg { background: rgba(248,113,113,0.08); color: var(--red); }
+.good-msg { background: rgba(74,222,128,0.08); color: var(--green); }
+.msg-author { color: var(--text-dim); font-family: 'Outfit', sans-serif; }
+
+.vel-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 160px;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.vel-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.vel-bar {
+    width: 100%;
+    background: linear-gradient(to top, var(--accent2), var(--accent));
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    position: relative;
+}
+.vel-count {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    position: absolute;
+    top: -18px;
+    white-space: nowrap;
+}
+.vel-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+}
+footer a { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 700px) {
+    body { padding: 1rem; }
+    .hero h1 { font-size: 1.8rem; }
+    .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="hero">
+    <h1>🗣️ Git Gossip</h1>
+    <div class="repo-name">test-repo</div>
+    <div class="meta">
+        <span>📊 14 commits</span>
+        <span>👥 3 contributors</span>
+        <span>📅 January 2025 → May 2025</span>
+    </div>
+</div>
+
+<section class="section">
+    <h2>👤 Developer Profiles</h2>
+    
+        <div class="author-card">
+            <div class="author-header">
+                <h3>Alice Chen</h3>
+                <span class="persona">🦉 Night Owl</span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-row">
+                    <span class="stat-label">Commits</span>
+                    <span class="stat-value">9</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lines added</span>
+                    <span class="stat-value add">+8</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lines deleted</span>
+                    <span class="stat-value del">-1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Churn ratio</span>
+                    <span class="stat-value">11%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Peak hour</span>
+                    <span class="stat-value">12 AM</span>
+                </div>
+                
+            <div class="stat-row frust">
+                <span class="stat-label">Frustration rate</span>
+                <span class="stat-value">😤 66.7%</span>
+            </div>
+                
+            <div class="stat-row rage">
+                <span class="stat-label">Rage bursts</span>
+                <span class="stat-value">🔥 1</span>
+            </div>
+            </div>
+            <div class="heatmap-section">
+                <div class="heatmap-label">Activity by hour (0h → 23h)</div>
+                <div class="heatmap"><div class="heat-cell" style="opacity:1.0" title="12 AM: 4 commits"></div><div class="heat-cell" style="opacity:0.25" title="1 AM: 1 commits"></div><div class="heat-cell" style="opacity:0.5" title="2 AM: 2 commits"></div><div class="heat-cell" style="opacity:0.25" title="3 AM: 1 commits"></div><div class="heat-cell" style="opacity:0.08" title="4 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="5 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="6 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="7 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="8 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="9 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="10 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="11 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="12 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="1 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="2 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="3 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="4 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="5 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="6 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="7 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="8 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="9 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="10 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.25" title="11 PM: 1 commits"></div></div>
+            </div>
+            <div class="heatmap-section">
+                <div class="heatmap-label">Activity by day</div>
+                <div class="day-map"><div class="day-cell" style="opacity:0.08" title="Mon: 0 commits">Mon</div><div class="day-cell" style="opacity:0.08" title="Tue: 0 commits">Tue</div><div class="day-cell" style="opacity:0.25" title="Wed: 1 commits">Wed</div><div class="day-cell" style="opacity:0.75" title="Thu: 3 commits">Thu</div><div class="day-cell" style="opacity:1.0" title="Fri: 4 commits">Fri</div><div class="day-cell" style="opacity:0.25" title="Sat: 1 commits">Sat</div><div class="day-cell" style="opacity:0.08" title="Sun: 0 commits">Sun</div></div>
+            </div>
+        </div>
+        <div class="author-card">
+            <div class="author-header">
+                <h3>Bob Martinez</h3>
+                <span class="persona">🐦 Early Bird</span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-row">
+                    <span class="stat-label">Commits</span>
+                    <span class="stat-value">3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lines added</span>
+                    <span class="stat-value add">+3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lines deleted</span>
+                    <span class="stat-value del">-0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Churn ratio</span>
+                    <span class="stat-value">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Peak hour</span>
+                    <span class="stat-value">10 AM</span>
+                </div>
+                
+                
+            </div>
+            <div class="heatmap-section">
+                <div class="heatmap-label">Activity by hour (0h → 23h)</div>
+                <div class="heatmap"><div class="heat-cell" style="opacity:0.08" title="12 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="1 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="2 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="3 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="4 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="5 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="6 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="7 AM: 0 commits"></div><div class="heat-cell" style="opacity:1.0" title="8 AM: 1 commits"></div><div class="heat-cell" style="opacity:1.0" title="9 AM: 1 commits"></div><div class="heat-cell" style="opacity:1.0" title="10 AM: 1 commits"></div><div class="heat-cell" style="opacity:0.08" title="11 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="12 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="1 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="2 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="3 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="4 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="5 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="6 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="7 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="8 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="9 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="10 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="11 PM: 0 commits"></div></div>
+            </div>
+            <div class="heatmap-section">
+                <div class="heatmap-label">Activity by day</div>
+                <div class="day-map"><div class="day-cell" style="opacity:1.0" title="Mon: 1 commits">Mon</div><div class="day-cell" style="opacity:1.0" title="Tue: 1 commits">Tue</div><div class="day-cell" style="opacity:1.0" title="Wed: 1 commits">Wed</div><div class="day-cell" style="opacity:0.08" title="Thu: 0 commits">Thu</div><div class="day-cell" style="opacity:0.08" title="Fri: 0 commits">Fri</div><div class="day-cell" style="opacity:0.08" title="Sat: 0 commits">Sat</div><div class="day-cell" style="opacity:0.08" title="Sun: 0 commits">Sun</div></div>
+            </div>
+        </div>
+        <div class="author-card">
+            <div class="author-header">
+                <h3>Carol Singh</h3>
+                <span class="persona">☀️ Regular Hours</span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-row">
+                    <span class="stat-label">Commits</span>
+                    <span class="stat-value">2</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lines added</span>
+                    <span class="stat-value add">+2</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lines deleted</span>
+                    <span class="stat-value del">-0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Churn ratio</span>
+                    <span class="stat-value">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Peak hour</span>
+                    <span class="stat-value">3 PM</span>
+                </div>
+                
+                
+            </div>
+            <div class="heatmap-section">
+                <div class="heatmap-label">Activity by hour (0h → 23h)</div>
+                <div class="heatmap"><div class="heat-cell" style="opacity:0.08" title="12 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="1 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="2 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="3 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="4 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="5 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="6 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="7 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="8 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="9 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="10 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="11 AM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="12 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="1 PM: 0 commits"></div><div class="heat-cell" style="opacity:1.0" title="2 PM: 1 commits"></div><div class="heat-cell" style="opacity:1.0" title="3 PM: 1 commits"></div><div class="heat-cell" style="opacity:0.08" title="4 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="5 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="6 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="7 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="8 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="9 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="10 PM: 0 commits"></div><div class="heat-cell" style="opacity:0.08" title="11 PM: 0 commits"></div></div>
+            </div>
+            <div class="heatmap-section">
+                <div class="heatmap-label">Activity by day</div>
+                <div class="day-map"><div class="day-cell" style="opacity:0.08" title="Mon: 0 commits">Mon</div><div class="day-cell" style="opacity:1.0" title="Tue: 1 commits">Tue</div><div class="day-cell" style="opacity:0.08" title="Wed: 0 commits">Wed</div><div class="day-cell" style="opacity:1.0" title="Thu: 1 commits">Thu</div><div class="day-cell" style="opacity:0.08" title="Fri: 0 commits">Fri</div><div class="day-cell" style="opacity:0.08" title="Sat: 0 commits">Sat</div><div class="day-cell" style="opacity:0.08" title="Sun: 0 commits">Sun</div></div>
+            </div>
+        </div>
+</section>
+
+<section class="section">
+    <h2>🔥 File Hotspots</h2>
+    <p class="subtitle">Most frequently modified files — high churn often correlates with bugs</p>
+    <table>
+        <thead><tr><th>File</th><th>Changes</th><th>Authors</th><th>Risk</th></tr></thead>
+        <tbody>
+        <tr class="risk-low">
+            <td class="file-name">config.py</td>
+            <td>5</td>
+            <td>2</td>
+            <td>🟢</td>
+        </tr>
+        <tr class="risk-low">
+            <td class="file-name">main.py</td>
+            <td>3</td>
+            <td>2</td>
+            <td>🟢</td>
+        </tr>
+        <tr class="risk-low">
+            <td class="file-name">temp_feature.py</td>
+            <td>2</td>
+            <td>1</td>
+            <td>🟢</td>
+        </tr>
+        <tr class="risk-low">
+            <td class="file-name">api.py</td>
+            <td>1</td>
+            <td>1</td>
+            <td>🟢</td>
+        </tr>
+        <tr class="risk-low">
+            <td class="file-name">utils.py</td>
+            <td>1</td>
+            <td>1</td>
+            <td>🟢</td>
+        </tr>
+        <tr class="risk-low">
+            <td class="file-name">tests.py</td>
+            <td>1</td>
+            <td>1</td>
+            <td>🟢</td>
+        </tr>
+        <tr class="risk-low">
+            <td class="file-name">app.py</td>
+            <td>1</td>
+            <td>1</td>
+            <td>🟢</td>
+        </tr></tbody>
+    </table>
+</section>
+
+<section class="section">
+    <h2>🚌 Bus Factor</h2>
+    <p class="subtitle">How many developers could leave before critical files are orphaned?</p>
+    <div class="bus-number warn">3</div>
+    <p>5 of top 7 files have a single dominant owner (>80%)</p>
+    <table><thead><tr><th>File</th><th>Owner</th><th>Ownership</th></tr></thead><tbody><tr><td>temp_feature.py</td><td>alice@dev.com</td><td>100%</td></tr><tr><td>api.py</td><td>carol@dev.com</td><td>100%</td></tr><tr><td>utils.py</td><td>bob@dev.com</td><td>100%</td></tr><tr><td>tests.py</td><td>bob@dev.com</td><td>100%</td></tr><tr><td>app.py</td><td>alice@dev.com</td><td>100%</td></tr></tbody></table>
+</section>
+
+
+
+<section class="section">
+    <h2>📝 Commit Message Quality</h2>
+    <div class="grade-badge bad">C</div>
+    <p class="subtitle">39% average quality across 14 commits</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+        <div>
+            <h4 style="color:var(--red);margin-bottom:0.5rem;">Worst messages</h4>
+            <div class="msg bad-msg">✗ "wip" <span class="msg-author">— Alice Chen</span></div><div class="msg bad-msg">✗ "try again" <span class="msg-author">— Alice Chen</span></div><div class="msg bad-msg">✗ "fix" <span class="msg-author">— Alice Chen</span></div><div class="msg bad-msg">✗ "please work" <span class="msg-author">— Alice Chen</span></div><div class="msg bad-msg">✗ "ugh why broken" <span class="msg-author">— Alice Chen</span></div>
+        </div>
+        <div>
+            <h4 style="color:var(--green);margin-bottom:0.5rem;">Best messages</h4>
+            <div class="msg good-msg">✓ "refactor: extract helper functions into utils" <span class="msg-author">— Bob Martinez</span></div><div class="msg good-msg">✓ "revert: remove experimental feature, not ready" <span class="msg-author">— Alice Chen</span></div><div class="msg good-msg">✓ "feat: implement REST API endpoints for user management" <span class="msg-author">— Carol Singh</span></div><div class="msg good-msg">✓ "chore: update dependencies and clean imports" <span class="msg-author">— Bob Martinez</span></div><div class="msg good-msg">✓ "test: add unit tests for auth module" <span class="msg-author">— Bob Martinez</span></div>
+        </div>
+    </div>
+</section>
+
+
+        <section class="section">
+            <h2>💀 Zombie Code</h2>
+            <p class="subtitle">Code written and deleted within 7 days — 1 events detected</p>
+            <table>
+                <thead><tr><th>Developer</th><th>Zombie Events</th></tr></thead>
+                <tbody><tr><td>Alice Chen</td><td>1</td></tr></tbody>
+            </table>
+        </section>
+
+<section class="section">
+    <h2>🏃 Velocity Trend</h2>
+    <p class="subtitle">Commits per month — is the project speeding up or slowing down?</p>
+    <div class="vel-chart">
+        <div class="vel-bar-wrap">
+            <div class="vel-bar" style="height:100.0%">
+                <span class="vel-count">8</span>
+            </div>
+            <div class="vel-label">25-01</div>
+        </div>
+        <div class="vel-bar-wrap">
+            <div class="vel-bar" style="height:12.5%">
+                <span class="vel-count">1</span>
+            </div>
+            <div class="vel-label">25-02</div>
+        </div>
+        <div class="vel-bar-wrap">
+            <div class="vel-bar" style="height:50.0%">
+                <span class="vel-count">4</span>
+            </div>
+            <div class="vel-label">25-03</div>
+        </div>
+        <div class="vel-bar-wrap">
+            <div class="vel-bar" style="height:12.5%">
+                <span class="vel-count">1</span>
+            </div>
+            <div class="vel-label">25-04</div>
+        </div></div>
+</section>
+
+<footer>
+    Generated by <a href="https://github.com/YOUR_USERNAME/git-gossip">git-gossip</a> — your repo's secret diary
+</footer>
+</body>
+</html>
