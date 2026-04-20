@@ -51,7 +51,7 @@ Run with `--html report.html` to generate a beautiful standalone dark-themed rep
 ## Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/git-gossip.git
+git clone https://github.com/adithyakiranhere/git-gossip.git
 cd git-gossip
 pip install -r requirements.txt
 ```
